@@ -53,9 +53,9 @@ namespace GameAICourse
         }        
         private FuzzySet<VehiclePosition> GetVehiclePositionSet()
         {
-            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-1f, new Coords(-1f, 1f), new Coords(-.1f, 0f),1f);
-            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-1f, 0f), new Coords(0f,1f), new Coords(1f, 0f));
-            IMembershipFunction RightFx = new ShoulderMembershipFunction(-1f, new Coords(.2f, 0f), new Coords(1f, 1f), 1f);
+            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-.5f, new Coords(-.5f, 1f), new Coords(-.1f, 0f),.5f);
+            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-.5f, 0f), new Coords(0f,1f), new Coords(.5f, 0f));
+            IMembershipFunction RightFx = new ShoulderMembershipFunction(-.5f, new Coords(.1f, 0f), new Coords(.5f, 1f), .5f);
             
             
             FuzzySet<VehiclePosition> set = new FuzzySet<VehiclePosition>();
@@ -82,7 +82,7 @@ namespace GameAICourse
         {
 
             IMembershipFunction LeftFx = new ShoulderMembershipFunction(-1f, new Coords(-1f, 1f), new Coords(-.5f, 0f), 1f);
-            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-1f, 0f), new Coords(0f, 1f), new Coords(1f, 0f));
+            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-1f, .3f), new Coords(0f, .3f), new Coords(1f, .4f));
             IMembershipFunction RightFx = new ShoulderMembershipFunction(-1f, new Coords(.5f, 0f), new Coords(1f, 1f), 1f);
             
 
@@ -166,22 +166,22 @@ namespace GameAICourse
             if (Math.Abs(difference.x) > Math.Abs(difference.z))
             {
                 float val = Math.Abs(difference.x);
-                val = signed_angle > 0 ? val : val * -1;
+                val = signed_angle > 0 ? val * -1: val;
                 Debug.Log(val);
-                currentPosition.Evaluate(val*4, inputs2);
+                currentPosition.Evaluate(val, inputs2);
             }
             else
             {
                 float val = Math.Abs(difference.z);
-                val = signed_angle > 0 ? val: val * -1;
+                val = signed_angle > 0 ? val * -1: val ;
                 Debug.Log(val);
-                currentPosition.Evaluate(val*4, inputs2);
+                currentPosition.Evaluate(val, inputs2);
             }
             //currentPosition.Evaluate(8.f, inputs2);
             var results2 = steeringRuleSet.Evaluate(inputs2);
             //Debug.Log("RESULTS: " + results2);
             Debug.Log("STEERING: " + results2);
-            Steering = -1*results2;
+            Steering = results2;
            
             // recommend you keep the base call at the end, after all your FuzzyVehicle code so that
             // control inputs can be processed properly (Throttle, Steering)

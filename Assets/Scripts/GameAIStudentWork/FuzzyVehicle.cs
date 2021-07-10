@@ -26,7 +26,7 @@ namespace GameAICourse
         enum VehicleSpeed { Slow, Medium, Fast}
         enum VehiclePosition { Left, Center, Right}
 
-        enum DesiredTurnRate { Left, Center, Right}
+        enum DesiredTurnRate { Left, SlightLeft, Center, Right}
 
         enum DesiredSpeed { BrakeHard, Coast, Fast }
 
@@ -41,8 +41,8 @@ namespace GameAICourse
 
         private FuzzySet<VehicleSpeed> GetSpeedSet()
         {
-            IMembershipFunction SlowFx = new ShoulderMembershipFunction(0f, new Coords(0f,1f), new Coords(20f,0f), 80f);
-            IMembershipFunction MediumFx = new TriangularMembershipFunction(new Coords(20f, 0f), new Coords(50f,1f), new Coords(80f,0f));
+            IMembershipFunction SlowFx = new ShoulderMembershipFunction(0f, new Coords(0f,1f), new Coords(30f,0f), 80f);
+            IMembershipFunction MediumFx = new TriangularMembershipFunction(new Coords(30f, 0f), new Coords(50f,1f), new Coords(80f,0f));
             IMembershipFunction FastFx = new ShoulderMembershipFunction(0f, new Coords(50f,0f), new Coords(80f,1f), 80f);
             
             FuzzySet<VehicleSpeed> set = new FuzzySet<VehicleSpeed>();
@@ -53,9 +53,9 @@ namespace GameAICourse
         }        
         private FuzzySet<VehiclePosition> GetVehiclePositionSet()
         {
-            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-.5f, new Coords(-.5f, 1f), new Coords(-.05f, 0f),.5f);
-            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-.5f, 0f), new Coords(0f,1f), new Coords(.5f, 0f));
-            IMembershipFunction RightFx = new ShoulderMembershipFunction(-.5f, new Coords(.05f, 0f), new Coords(.5f, 1f), .5f);
+            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-.2f, new Coords(-.2f, 1f), new Coords(-.005f, 0f),.2f);
+            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-.2f, 0f), new Coords(0f,1f), new Coords(.2f, 0f));
+            IMembershipFunction RightFx = new ShoulderMembershipFunction(-.2f, new Coords(.005f, 0f), new Coords(.2f, 1f), .2f);
             
             
             FuzzySet<VehiclePosition> set = new FuzzySet<VehiclePosition>();
@@ -67,7 +67,7 @@ namespace GameAICourse
 
         private FuzzySet<DesiredSpeed> GetDesiredSpeedSet()
         {
-            IMembershipFunction BrakeHardFx = new ShoulderMembershipFunction(-80, new Coords(-80, 1f), new Coords(-30, 0f), 80f);
+            IMembershipFunction BrakeHardFx = new ShoulderMembershipFunction(-80, new Coords(-30, 1f), new Coords(-10, 0f), 80f);
             IMembershipFunction CoastFx = new TriangularMembershipFunction(new Coords(-80f, 0f), new Coords(0f, 1f), new Coords(80f,0f));
             IMembershipFunction FastFx = new ShoulderMembershipFunction(-80f, new Coords(50f, 0f), new Coords(80f, 1f), 80f);
 
@@ -81,13 +81,15 @@ namespace GameAICourse
         private FuzzySet<DesiredTurnRate> GetDesiredTurnRateSet()
         {
 
-            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-1f, new Coords(-1f, 1f), new Coords(-.5f, 0f), 1f);
-            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-1f, .3f), new Coords(0f, .3f), new Coords(1f, .4f));
-            IMembershipFunction RightFx = new ShoulderMembershipFunction(-1f, new Coords(.5f, 0f), new Coords(1f, 1f), 1f);
+            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-.8f, new Coords(-.5f, .7f), new Coords(-.1f, 0f), .1f);
+            IMembershipFunction SlightLeftFx = new TriangularMembershipFunction(new Coords(-.5f, 0f), new Coords(-.3f, 1f), new Coords(.5f, 0f));
+            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-.8f, 0f), new Coords(0f, 1f), new Coords(.8f, 0f));
+            IMembershipFunction RightFx = new ShoulderMembershipFunction(.1f, new Coords(.1f, 0f), new Coords(.8f, .5f), .8f);
             
 
             FuzzySet<DesiredTurnRate> set = new FuzzySet<DesiredTurnRate>();
             set.Set(new FuzzyVariable<DesiredTurnRate>(DesiredTurnRate.Left, LeftFx));
+            set.Set(new FuzzyVariable<DesiredTurnRate>(DesiredTurnRate.SlightLeft, SlightLeftFx));
             set.Set(new FuzzyVariable<DesiredTurnRate>(DesiredTurnRate.Center, CenterFx));
             set.Set(new FuzzyVariable<DesiredTurnRate>(DesiredTurnRate.Right, RightFx));
             return set;
@@ -97,12 +99,12 @@ namespace GameAICourse
         {
             FuzzyRule<DesiredSpeed>[] rules = new FuzzyRule<DesiredSpeed>[7];
             rules[0] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Center.Expr()).Then(DesiredSpeed.Fast);
-            rules[1] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Left.Expr()).Then(DesiredSpeed.Fast);
-            rules[2] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Right.Expr()).Then(DesiredSpeed.Fast);
+            rules[1] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Left.Expr()).Then(DesiredSpeed.Coast);
+            rules[2] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Right.Expr()).Then(DesiredSpeed.Coast);
 
-            rules[3] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Center.Expr()).Then(DesiredSpeed.Fast);
-            rules[4] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Left.Expr()).Then(DesiredSpeed.BrakeHard);
-            rules[5] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Right.Expr()).Then(DesiredSpeed.BrakeHard);
+            rules[3] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Center.Expr()).Then(DesiredSpeed.Coast);
+            rules[4] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Left.Expr()).Then(DesiredSpeed.Coast);
+            rules[5] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Right.Expr()).Then(DesiredSpeed.Coast);
            
             rules[6] = VehicleSpeed.Fast.Expr().Then(DesiredSpeed.BrakeHard);
             return rules;
@@ -159,7 +161,9 @@ namespace GameAICourse
             // Throttle = someValue; //[-1f, 1f] -1 is full brake, 0 is neutral, 1 is full throttle
             // Steering = someValue; // [-1f, 1f] -1 if full left, 0 is neutral, 1 is full right
             Vector3 difference = (transform.position - pathTracker.closestPointOnPath)/5;
+            Debug.Log("DIFF: " + (Vector2.Distance(new Vector2(difference.x, difference.z), new Vector2(pathTracker.closestPointDirectionOnPath.x, pathTracker.closestPointDirectionOnPath.z))));
             float signed_angle = Vector3.SignedAngle(difference, pathTracker.closestPointDirectionOnPath, Vector3.up);
+            Debug.Log("DIR: " + signed_angle);
             // EVAL THROTTLE
             if (Math.Abs(difference.x) > Math.Abs(difference.z))
             {
@@ -171,7 +175,7 @@ namespace GameAICourse
             else
             {
                 float val = Math.Abs(difference.z);
-                val = signed_angle > 0 ? val * -1 : val;
+                val = signed_angle > 0f ? val * -1 : val;
                 Debug.Log(val);
                 currentPosition.Evaluate(val, inputs);
             }
@@ -186,22 +190,22 @@ namespace GameAICourse
             if (Math.Abs(difference.x) > Math.Abs(difference.z))
             {
                 float val = Math.Abs(difference.x);
-                val = signed_angle > 0 ? val * -1: val;
+                val = signed_angle > 0f ? val * -1: val;
                 Debug.Log(val);
-                currentPosition.Evaluate(val, inputs2);
+                currentPosition.Evaluate(val*1f, inputs2);
             }
             else
             {
                 float val = Math.Abs(difference.z);
                 val = signed_angle > 0 ? val * -1: val ;
                 Debug.Log(val);
-                currentPosition.Evaluate(val, inputs2);
+                currentPosition.Evaluate(val*1f, inputs2);
             }
             //currentPosition.Evaluate(8.f, inputs2);
             var results2 = steeringRuleSet.Evaluate(inputs2);
             //Debug.Log("RESULTS: " + results2);
             Debug.Log("STEERING: " + results2);
-            Steering = results2;
+            Steering = results2*1f;
            
             // recommend you keep the base call at the end, after all your FuzzyVehicle code so that
             // control inputs can be processed properly (Throttle, Steering)

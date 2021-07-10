@@ -53,9 +53,9 @@ namespace GameAICourse
         }        
         private FuzzySet<VehiclePosition> GetVehiclePositionSet()
         {
-            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-.5f, new Coords(-.5f, 1f), new Coords(-.1f, 0f),.5f);
+            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-.5f, new Coords(-.5f, 1f), new Coords(-.05f, 0f),.5f);
             IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-.5f, 0f), new Coords(0f,1f), new Coords(.5f, 0f));
-            IMembershipFunction RightFx = new ShoulderMembershipFunction(-.5f, new Coords(.1f, 0f), new Coords(.5f, 1f), .5f);
+            IMembershipFunction RightFx = new ShoulderMembershipFunction(-.5f, new Coords(.05f, 0f), new Coords(.5f, 1f), .5f);
             
             
             FuzzySet<VehiclePosition> set = new FuzzySet<VehiclePosition>();
@@ -95,10 +95,16 @@ namespace GameAICourse
 
         private FuzzyRule<DesiredSpeed>[] GetThrottleRules()
         {
-            FuzzyRule<DesiredSpeed>[] rules = new FuzzyRule<DesiredSpeed>[3];
-            rules[0] = VehicleSpeed.Slow.Expr().Then(DesiredSpeed.Fast);
-            rules[1] = VehicleSpeed.Medium.Expr().Then(DesiredSpeed.Coast);
-            rules[2] = VehicleSpeed.Fast.Expr().Then(DesiredSpeed.BrakeHard);
+            FuzzyRule<DesiredSpeed>[] rules = new FuzzyRule<DesiredSpeed>[7];
+            rules[0] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Center.Expr()).Then(DesiredSpeed.Fast);
+            rules[1] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Left.Expr()).Then(DesiredSpeed.Fast);
+            rules[2] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Right.Expr()).Then(DesiredSpeed.Fast);
+
+            rules[3] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Center.Expr()).Then(DesiredSpeed.Fast);
+            rules[4] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Left.Expr()).Then(DesiredSpeed.BrakeHard);
+            rules[5] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Right.Expr()).Then(DesiredSpeed.BrakeHard);
+           
+            rules[6] = VehicleSpeed.Fast.Expr().Then(DesiredSpeed.BrakeHard);
             return rules;
         }
 
@@ -155,6 +161,20 @@ namespace GameAICourse
             Vector3 difference = (transform.position - pathTracker.closestPointOnPath)/5;
             float signed_angle = Vector3.SignedAngle(difference, pathTracker.closestPointDirectionOnPath, Vector3.up);
             // EVAL THROTTLE
+            if (Math.Abs(difference.x) > Math.Abs(difference.z))
+            {
+                float val = Math.Abs(difference.x);
+                val = signed_angle > 0 ? val * -1 : val;
+                Debug.Log(val);
+                currentPosition.Evaluate(val, inputs);
+            }
+            else
+            {
+                float val = Math.Abs(difference.z);
+                val = signed_angle > 0 ? val * -1 : val;
+                Debug.Log(val);
+                currentPosition.Evaluate(val, inputs);
+            }
             currentSpeed.Evaluate(Speed,inputs);
             var results = throttleRuleSet.Evaluate(inputs);
             float crisp = results / 80;

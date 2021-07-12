@@ -53,9 +53,9 @@ namespace GameAICourse
         }        
         private FuzzySet<VehiclePosition> GetVehiclePositionSet()
         {
-            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-3f, new Coords(-3f, 1f), new Coords(-.000001f, 0f),3f);
-            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-3f, .2f), new Coords(0f,.5f), new Coords(3f, .2f));
-            IMembershipFunction RightFx = new ShoulderMembershipFunction(-3f, new Coords(.000001f, 0f), new Coords(3f, 1f), 3f);           
+            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-3f, new Coords(-3f, 1f), new Coords(-.01f, 0f),3f);
+            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-3f, 0f), new Coords(0f,1f), new Coords(3f, 0f));
+            IMembershipFunction RightFx = new ShoulderMembershipFunction(-3f, new Coords(.01f, 0f), new Coords(3f, 1f), 3f);           
             
             FuzzySet<VehiclePosition> set = new FuzzySet<VehiclePosition>();
             set.Set(new FuzzyVariable<VehiclePosition>(VehiclePosition.Left, LeftFx));
@@ -138,7 +138,7 @@ namespace GameAICourse
 
             StudentName = "Andrew Hinson";
             // Only the AI can control. No humans allowed!
-            IsPlayer = false;
+            IsPlayer = true;
 
             // TODO: You can initialize a bunch of Fuzzy stuff here
             desiredSpeed = GetDesiredSpeedSet();
@@ -165,19 +165,26 @@ namespace GameAICourse
             float distance = Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(pathTracker.closestPointOnPath.x, pathTracker.closestPointOnPath.z));
             float signed_angle = Vector3.SignedAngle(difference, pathTracker.closestPointDirectionOnPath, Vector3.up);
             //Debug.Log("DIR: " + signed_angle);
-            Debug.Log("DISTANCE: " + distance);
+            //Debug.Log("DISTANCE: " + distance);
+           /* Vector3 x = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex];
+            Vector3 y = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex + 3];
+            Debug.Log("FOWARD: " + transform.forward);
+            Debug.Log("CLOSEST DIR: " + pathTracker.closestPointDirectionOnPath);*/
+            distance = Vector3.Distance(transform.forward, pathTracker.closestPointDirectionOnPath);
+            Debug.Log("DISTANCE: " + Vector3.Distance(transform.forward, pathTracker.closestPointDirectionOnPath));
+            //Debug.Log("current: " + x);
+            //Debug.Log("next: " + y);
             // EVAL THROTTLE
             float val = signed_angle > 0 ? distance * -1 : distance;
-            currentPosition.Evaluate(val, inputs);
-            
+            currentPosition.Evaluate(val, inputs);            
             currentSpeed.Evaluate(Speed,inputs);
             var results = throttleRuleSet.Evaluate(inputs);
             float crisp = results / 80;
-            Debug.Log("THROTTLE: " + crisp);
+            //Debug.Log("THROTTLE: " + crisp);
             Throttle = crisp;
 
             // EVAL STEERING
-            currentPosition.Evaluate(val*1f, inputs2);
+            currentPosition.Evaluate(val*6f, inputs2);
             var results2 = steeringRuleSet.Evaluate(inputs2);
             Debug.Log("STEERING: " + results2);
             Steering = results2*1f;

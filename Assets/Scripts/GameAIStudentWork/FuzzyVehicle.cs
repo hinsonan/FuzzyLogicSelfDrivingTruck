@@ -39,6 +39,8 @@ namespace GameAICourse
         FuzzyValueSet inputs;
         FuzzyValueSet inputs2;
 
+        float localDistance;
+
         private FuzzySet<VehicleSpeed> GetSpeedSet()
         {
             IMembershipFunction SlowFx = new ShoulderMembershipFunction(0f, new Coords(0f,1f), new Coords(30f,0f), 80f);
@@ -150,6 +152,7 @@ namespace GameAICourse
 
             inputs = new FuzzyValueSet();
             inputs2 = new FuzzyValueSet();
+            localDistance = 0.0f;
 
         }
 
@@ -164,16 +167,18 @@ namespace GameAICourse
             Vector3 difference = (transform.position - pathTracker.closestPointOnPath);
             float distance = Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(pathTracker.closestPointOnPath.x, pathTracker.closestPointOnPath.z));
             float signed_angle = Vector3.SignedAngle(difference, pathTracker.closestPointDirectionOnPath, Vector3.up);
-            //Debug.Log("DIR: " + signed_angle);
-            //Debug.Log("DISTANCE: " + distance);
-           /* Vector3 x = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex];
-            Vector3 y = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex + 3];
-            Debug.Log("FOWARD: " + transform.forward);
-            Debug.Log("CLOSEST DIR: " + pathTracker.closestPointDirectionOnPath);*/
-            distance = Vector3.Distance(transform.forward, pathTracker.closestPointDirectionOnPath);
-            Debug.Log("DISTANCE: " + Vector3.Distance(transform.forward, pathTracker.closestPointDirectionOnPath));
-            //Debug.Log("current: " + x);
-            //Debug.Log("next: " + y);
+            Vector3 x = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex];
+            Vector3 y = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex + 1];
+            Vector3 z = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex + 2];
+            Vector3 rel1 = y - x;
+            Vector3 rel2 = z - y;
+            localDistance = Vector3.Distance(rel1, rel2);
+            Debug.Log("current: " + rel1);
+            Debug.Log("next: " + rel2);
+            Debug.Log(Vector3.SignedAngle(rel1, rel2, Vector3.up));
+            Debug.Log("Distance: " + localDistance);
+            //if (localDistance >= 10) { localDistance = 0f; }
+
             // EVAL THROTTLE
             float val = signed_angle > 0 ? distance * -1 : distance;
             currentPosition.Evaluate(val, inputs);            
@@ -184,9 +189,9 @@ namespace GameAICourse
             Throttle = crisp;
 
             // EVAL STEERING
-            currentPosition.Evaluate(val*6f, inputs2);
+            currentPosition.Evaluate(val*1f, inputs2);
             var results2 = steeringRuleSet.Evaluate(inputs2);
-            Debug.Log("STEERING: " + results2);
+            //Debug.Log("STEERING: " + results2);
             Steering = results2*1f;
            
             // recommend you keep the base call at the end, after all your FuzzyVehicle code so that

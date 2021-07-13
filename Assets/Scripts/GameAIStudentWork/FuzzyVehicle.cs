@@ -26,6 +26,8 @@ namespace GameAICourse
         enum VehicleSpeed { Slow, Medium, Fast}
         enum VehiclePosition { Left, Center, Right}
 
+        enum RoadDirection { LeftTurn, Straight, RightTurn }
+
         enum DesiredTurnRate { Left, Center, Right}
 
         enum DesiredSpeed { BrakeHard, Coast, Fast }
@@ -172,13 +174,10 @@ namespace GameAICourse
             Vector3 z = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex + 2];
             Vector3 rel1 = y - x;
             Vector3 rel2 = z - y;
-            localDistance = Vector3.Distance(rel1, rel2);
-            Debug.Log("current: " + rel1);
-            Debug.Log("next: " + rel2);
-            Debug.Log(Vector3.SignedAngle(rel1, rel2, Vector3.up));
+            localDistance += pathTracker.distanceTravelled - 14.9f;
+            Debug.Log("Signed Angle: " + Vector3.SignedAngle(rel1, rel2, Vector3.up));
             Debug.Log("Distance: " + localDistance);
-            //if (localDistance >= 10) { localDistance = 0f; }
-
+            if (localDistance >= 10f || localDistance <= -10f) { localDistance = 0f; }
             // EVAL THROTTLE
             float val = signed_angle > 0 ? distance * -1 : distance;
             currentPosition.Evaluate(val, inputs);            

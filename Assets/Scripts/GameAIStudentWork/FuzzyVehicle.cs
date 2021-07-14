@@ -44,8 +44,8 @@ namespace GameAICourse
 
         private FuzzySet<VehicleSpeed> GetSpeedSet()
         {
-            IMembershipFunction SlowFx = new ShoulderMembershipFunction(0f, new Coords(0f,1f), new Coords(30f,0f), 80f);
-            IMembershipFunction MediumFx = new TriangularMembershipFunction(new Coords(30f, 0f), new Coords(50f,1f), new Coords(80f,0f));
+            IMembershipFunction SlowFx = new ShoulderMembershipFunction(0f, new Coords(0f,1f), new Coords(35f,0f), 80f);
+            IMembershipFunction MediumFx = new TriangularMembershipFunction(new Coords(35f, 0f), new Coords(50f,1f), new Coords(80f,0f));
             IMembershipFunction FastFx = new ShoulderMembershipFunction(0f, new Coords(50f,0f), new Coords(80f,1f), 80f);
             
             FuzzySet<VehicleSpeed> set = new FuzzySet<VehicleSpeed>();

@@ -56,9 +56,9 @@ namespace GameAICourse
         }        
         private FuzzySet<VehiclePosition> GetVehiclePositionSet()
         {
-            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-3f, new Coords(-3f, 1f), new Coords(-.01f, 0f),3f);
+            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-3f, new Coords(-3f, 1f), new Coords(-2f, 0f),3f);
             IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-3f, 0f), new Coords(0f,1f), new Coords(3f, 0f));
-            IMembershipFunction RightFx = new ShoulderMembershipFunction(-3f, new Coords(.01f, 0f), new Coords(3f, 1f), 3f);           
+            IMembershipFunction RightFx = new ShoulderMembershipFunction(-3f, new Coords(.2f, 0f), new Coords(3f, 1f), 3f);           
             
             FuzzySet<VehiclePosition> set = new FuzzySet<VehiclePosition>();
             set.Set(new FuzzyVariable<VehiclePosition>(VehiclePosition.Left, LeftFx));
@@ -197,9 +197,11 @@ namespace GameAICourse
             Throttle = crisp;
 
             // EVAL STEERING
-            float vehiclePosition = Vector3.SignedAngle(transform.forward, pathTracker.closestPointDirectionOnPath, Vector3.up);
+            float vehicleDir = Vector3.SignedAngle(transform.forward, pathTracker.closestPointDirectionOnPath, Vector3.up);
             //vehiclePosition = signed_angle > 0 ? vehiclePosition * -1 : vehiclePosition;
-            Debug.Log("VEHICLE DIR: " + vehiclePosition);
+            Debug.Log("VEHICLE DIR: " + vehicleDir);
+            Debug.Log("VEHICLE POS: " + val);
+            currentVehicleDirection.Evaluate(vehicleDir, inputs2);
             currentPosition.Evaluate(val*1f, inputs2);
             var results2 = steeringRuleSet.Evaluate(inputs2);
             Debug.Log("STEERING: " + results2);

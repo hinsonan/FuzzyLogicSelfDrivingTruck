@@ -56,9 +56,9 @@ namespace GameAICourse
         }        
         private FuzzySet<VehiclePosition> GetVehiclePositionSet()
         {
-            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-3f, new Coords(-3f, 1f), new Coords(-2f, 0f),3f);
-            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-3f, 0f), new Coords(0f,1f), new Coords(3f, 0f));
-            IMembershipFunction RightFx = new ShoulderMembershipFunction(-3f, new Coords(.2f, 0f), new Coords(3f, 1f), 3f);           
+            IMembershipFunction LeftFx = new ShoulderMembershipFunction(-2f, new Coords(-2f, 1f), new Coords(-1f, 0f),2f);
+            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(-2f, 0f), new Coords(0f,1f), new Coords(2f, 0f));
+            IMembershipFunction RightFx = new ShoulderMembershipFunction(-2f, new Coords(1f, 0f), new Coords(2f, 1f), 2f);           
             
             FuzzySet<VehiclePosition> set = new FuzzySet<VehiclePosition>();
             set.Set(new FuzzyVariable<VehiclePosition>(VehiclePosition.Left, LeftFx));
@@ -111,20 +111,20 @@ namespace GameAICourse
 
         private FuzzyRule<DesiredSpeed>[] GetThrottleRules()
         {
-            FuzzyRule<DesiredSpeed>[] rules = new FuzzyRule<DesiredSpeed>[3];
-            rules[0] = VehicleSpeed.Slow.Expr().Then(DesiredSpeed.Fast);
+            FuzzyRule<DesiredSpeed>[] rules = new FuzzyRule<DesiredSpeed>[7];
+            /*rules[0] = VehicleSpeed.Slow.Expr().Then(DesiredSpeed.Fast);
             rules[1] = VehicleSpeed.Medium.Expr().Then(DesiredSpeed.Coast);
-            rules[2] = VehicleSpeed.Fast.Expr().Then(DesiredSpeed.Coast);
+            rules[2] = VehicleSpeed.Fast.Expr().Then(DesiredSpeed.Coast);*/
 
-            /*rules[0] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Center.Expr()).Then(DesiredSpeed.Fast);
+            rules[0] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Center.Expr()).Then(DesiredSpeed.Fast);
             rules[1] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Left.Expr()).Then(DesiredSpeed.Coast);
             rules[2] = VehicleSpeed.Slow.Expr().And(VehiclePosition.Right.Expr()).Then(DesiredSpeed.Coast);
 
-            rules[3] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Center.Expr()).Then(DesiredSpeed.Coast);
+            rules[3] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Center.Expr()).Then(DesiredSpeed.Fast);
             rules[4] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Left.Expr()).Then(DesiredSpeed.Coast);
             rules[5] = VehicleSpeed.Medium.Expr().And(VehiclePosition.Right.Expr()).Then(DesiredSpeed.Coast);
-           
-            rules[6] = VehicleSpeed.Fast.Expr().Then(DesiredSpeed.BrakeHard);*/
+
+            rules[6] = VehicleSpeed.Fast.Expr().Then(DesiredSpeed.BrakeHard);
             return rules;
         }
 

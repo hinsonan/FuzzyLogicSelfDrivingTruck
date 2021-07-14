@@ -26,7 +26,7 @@ namespace GameAICourse
         enum VehicleSpeed { Slow, Medium, Fast}
         enum VehiclePosition { Left, Center, Right}
 
-        enum RoadDirection { LeftTurn, Straight, RightTurn }
+        enum VehicleDirection { Left, Center, Right }
 
         enum DesiredTurnRate { Left, Center, Right}
 
@@ -36,12 +36,11 @@ namespace GameAICourse
         FuzzySet<DesiredTurnRate> desiredTurnRate;
         FuzzySet<VehicleSpeed> currentSpeed;
         FuzzySet<VehiclePosition> currentPosition;
+        FuzzySet<VehicleDirection> currentVehicleDirection;
         FuzzyRuleSet<DesiredSpeed> throttleRuleSet;
         FuzzyRuleSet<DesiredTurnRate> steeringRuleSet;
         FuzzyValueSet inputs;
         FuzzyValueSet inputs2;
-
-        float localDistance;
 
         private FuzzySet<VehicleSpeed> GetSpeedSet()
         {
@@ -65,6 +64,20 @@ namespace GameAICourse
             set.Set(new FuzzyVariable<VehiclePosition>(VehiclePosition.Left, LeftFx));
             set.Set(new FuzzyVariable<VehiclePosition>(VehiclePosition.Center, CenterFx));
             set.Set(new FuzzyVariable<VehiclePosition>(VehiclePosition.Right, RightFx));
+            return set;
+        }
+
+        private FuzzySet<VehicleDirection> GetVehicleDirectionSet()
+        {
+
+            IMembershipFunction LeftFx = new ShoulderMembershipFunction(30f, new Coords(30f, 1f), new Coords(6f, 0f), -30f);
+            IMembershipFunction CenterFx = new TriangularMembershipFunction(new Coords(30f, 0f), new Coords(0f, 1f), new Coords(-30f, 0f));
+            IMembershipFunction RightFx = new ShoulderMembershipFunction(30f, new Coords(-6f, 0f), new Coords(-30f, 1f), -30f);
+
+            FuzzySet<VehicleDirection> set = new FuzzySet<VehicleDirection>();
+            set.Set(new FuzzyVariable<VehicleDirection>(VehicleDirection.Left, LeftFx));
+            set.Set(new FuzzyVariable<VehicleDirection>(VehicleDirection.Center, CenterFx));
+            set.Set(new FuzzyVariable<VehicleDirection>(VehicleDirection.Right, RightFx));
             return set;
         }
 
@@ -117,10 +130,16 @@ namespace GameAICourse
 
         private FuzzyRule<DesiredTurnRate>[] GetSteeringRules()
         {
-            FuzzyRule<DesiredTurnRate>[] rules = new FuzzyRule<DesiredTurnRate>[3];
-            rules[0] = VehiclePosition.Left.Expr().Then(DesiredTurnRate.Right);
-            rules[1] = VehiclePosition.Center.Expr().Then(DesiredTurnRate.Center);
-            rules[2] = VehiclePosition.Right.Expr().Then(DesiredTurnRate.Left);
+            FuzzyRule<DesiredTurnRate>[] rules = new FuzzyRule<DesiredTurnRate>[6];
+            rules[0] = VehicleDirection.Left.Expr().Then(DesiredTurnRate.Right);
+            rules[1] = VehicleDirection.Center.Expr().Then(DesiredTurnRate.Center);
+            rules[2] = VehicleDirection.Right.Expr().Then(DesiredTurnRate.Left);
+
+            rules[3] = VehiclePosition.Left.Expr().Then(DesiredTurnRate.Right);
+            rules[4] = VehiclePosition.Center.Expr().Then(DesiredTurnRate.Center);
+            rules[5] = VehiclePosition.Right.Expr().Then(DesiredTurnRate.Left);
+
+            
             return rules;
         }
 
@@ -142,19 +161,20 @@ namespace GameAICourse
 
             StudentName = "Andrew Hinson";
             // Only the AI can control. No humans allowed!
-            IsPlayer = true;
+            IsPlayer = false;
 
             // TODO: You can initialize a bunch of Fuzzy stuff here
             desiredSpeed = GetDesiredSpeedSet();
             desiredTurnRate = GetDesiredTurnRateSet();
             currentSpeed = GetSpeedSet();
             currentPosition = GetVehiclePositionSet();
+            currentVehicleDirection = GetVehicleDirectionSet();
+
             throttleRuleSet = GetThrottleRuleSet(desiredSpeed);
             steeringRuleSet = GetSteeringRuleSet(desiredTurnRate);
 
             inputs = new FuzzyValueSet();
             inputs2 = new FuzzyValueSet();
-            localDistance = 0.0f;
 
         }
 
@@ -164,20 +184,9 @@ namespace GameAICourse
 
             // TODO Do all your Fuzzy stuff here and pass the defuzzified values to 
             // the car like so:
-            // Throttle = someValue; //[-1f, 1f] -1 is full brake, 0 is neutral, 1 is full throttle
-            // Steering = someValue; // [-1f, 1f] -1 if full left, 0 is neutral, 1 is full right
             Vector3 difference = (transform.position - pathTracker.closestPointOnPath);
             float distance = Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(pathTracker.closestPointOnPath.x, pathTracker.closestPointOnPath.z));
             float signed_angle = Vector3.SignedAngle(difference, pathTracker.closestPointDirectionOnPath, Vector3.up);
-            Vector3 x = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex];
-            Vector3 y = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex + 1];
-            Vector3 z = pathTracker.pathCreator.path.localPoints[pathTracker.currentClosestPathPointIndex + 2];
-            Vector3 rel1 = y - x;
-            Vector3 rel2 = z - y;
-            localDistance += pathTracker.distanceTravelled - 14.9f;
-            Debug.Log("Signed Angle: " + Vector3.SignedAngle(rel1, rel2, Vector3.up));
-            Debug.Log("Distance: " + localDistance);
-            if (localDistance >= 10f || localDistance <= -10f) { localDistance = 0f; }
             // EVAL THROTTLE
             float val = signed_angle > 0 ? distance * -1 : distance;
             currentPosition.Evaluate(val, inputs);            
@@ -188,9 +197,12 @@ namespace GameAICourse
             Throttle = crisp;
 
             // EVAL STEERING
+            float vehiclePosition = Vector3.SignedAngle(transform.forward, pathTracker.closestPointDirectionOnPath, Vector3.up);
+            //vehiclePosition = signed_angle > 0 ? vehiclePosition * -1 : vehiclePosition;
+            Debug.Log("VEHICLE DIR: " + vehiclePosition);
             currentPosition.Evaluate(val*1f, inputs2);
             var results2 = steeringRuleSet.Evaluate(inputs2);
-            //Debug.Log("STEERING: " + results2);
+            Debug.Log("STEERING: " + results2);
             Steering = results2*1f;
            
             // recommend you keep the base call at the end, after all your FuzzyVehicle code so that

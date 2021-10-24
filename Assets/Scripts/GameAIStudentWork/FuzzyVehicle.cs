@@ -187,24 +187,20 @@ namespace GameAICourse
             Vector3 difference = (transform.position - pathTracker.closestPointOnPath);
             float distance = Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(pathTracker.closestPointOnPath.x, pathTracker.closestPointOnPath.z));
             float signed_angle = Vector3.SignedAngle(difference, pathTracker.closestPointDirectionOnPath, Vector3.up);
+
             // EVAL THROTTLE
             float val = signed_angle > 0 ? distance * -1 : distance;
             currentPosition.Evaluate(val, inputs);            
             currentSpeed.Evaluate(Speed,inputs);
             var results = throttleRuleSet.Evaluate(inputs);
             float crisp = results / 80;
-            //Debug.Log("THROTTLE: " + crisp);
             Throttle = crisp;
 
             // EVAL STEERING
             float vehicleDir = Vector3.SignedAngle(transform.forward, pathTracker.closestPointDirectionOnPath, Vector3.up);
-            //vehiclePosition = signed_angle > 0 ? vehiclePosition * -1 : vehiclePosition;
-            Debug.Log("VEHICLE DIR: " + vehicleDir);
-            Debug.Log("VEHICLE POS: " + val);
             currentVehicleDirection.Evaluate(vehicleDir, inputs2);
             currentPosition.Evaluate(val*1f, inputs2);
             var results2 = steeringRuleSet.Evaluate(inputs2);
-            Debug.Log("STEERING: " + results2);
             Steering = results2*1f;
            
             // recommend you keep the base call at the end, after all your FuzzyVehicle code so that
